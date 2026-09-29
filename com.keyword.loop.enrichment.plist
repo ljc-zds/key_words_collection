@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>Label</key><string>com.keyword.loop.enrichment</string>
+  <key>ProgramArguments</key><array>
+    <string>/Users/am/Documents/代码/key_words_collection/.venv/bin/python</string>
+    <string>/Users/am/Documents/代码/key_words_collection/run_keyword_enrichment_batch.py</string>
+  </array>
+  <key>WorkingDirectory</key><string>/Users/am/Documents/代码/key_words_collection</string>
+  <key>EnvironmentVariables</key><dict><key>PYTHONPATH</key><string>/Users/am/Documents/代码/key_words_collection</string></dict>
+  <key>StartCalendarInterval</key><dict><key>Hour</key><integer>3</integer><key>Minute</key><integer>0</integer></dict>
+  <key>StandardOutPath</key><string>/Users/am/Documents/代码/key_words_collection/runtime/keyword-enrichment.log</string>
+  <key>StandardErrorPath</key><string>/Users/am/Documents/代码/key_words_collection/runtime/keyword-enrichment-error.log</string>
+</dict></plist>
