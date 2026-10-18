@@ -7,7 +7,7 @@ import random
 import time
 from contextlib import suppress
 from pathlib import Path
-from urllib.request import urlopen
+from cdp_transport import cdp_urlopen as urlopen, cdp_websocket
 
 import websocket
 
@@ -36,7 +36,7 @@ class BrowserApiGoogleTrendsClient:
         try:
             with urlopen(self.cdp_url + '/json/version', timeout=5) as response:
                 info = json.load(response)
-            browser = websocket.create_connection(info['webSocketDebuggerUrl'], timeout=5, suppress_origin=True)
+            browser = cdp_websocket(info['webSocketDebuggerUrl'], timeout=5, suppress_origin=True)
             # A real same-origin page is required; never create about:blank or activate it.
             browser.send(json.dumps({'id': 1, 'method': 'Target.createTarget', 'params': {
                 'url': 'https://trends.google.com/trends/', 'background': True}}))
@@ -51,7 +51,7 @@ class BrowserApiGoogleTrendsClient:
                 target = next((t for t in json.load(response) if t['id'] == target_id), None)
             if not target or not target.get('webSocketDebuggerUrl'):
                 raise RuntimeError('Trends page CDP endpoint missing')
-            page = websocket.create_connection(target['webSocketDebuggerUrl'], timeout=1, suppress_origin=True)
+            page = cdp_websocket(target['webSocketDebuggerUrl'], timeout=1, suppress_origin=True)
             seq = 0
 
             def command(method, params, deadline):

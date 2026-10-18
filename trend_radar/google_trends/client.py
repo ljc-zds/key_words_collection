@@ -11,6 +11,7 @@ from contextlib import suppress
 from queue import Empty
 from urllib.parse import quote, urlencode
 from urllib.request import Request, urlopen
+from cdp_transport import cdp_urlopen, cdp_websocket
 from urllib.parse import urlparse
 
 import websocket
@@ -280,9 +281,9 @@ class NewCdpGoogleTrendsClient(CdpGoogleTrendsClient):
         url = "https://trends.google.com/explore?" + urlencode({"q": ",".join(terms), "date": timeframe, "_cdp": str(time.time_ns())})
         parsed = urlparse(self.cdp_url)
         list_url = f"{parsed.scheme}://{parsed.netloc}/json/list"
-        with urlopen(f"{parsed.scheme}://{parsed.netloc}/json/version", timeout=10) as response:
+        with cdp_urlopen(f"{parsed.scheme}://{parsed.netloc}/json/version", timeout=10) as response:
             browser_info = json.load(response)
-        browser_ws = websocket.create_connection(browser_info["webSocketDebuggerUrl"], timeout=3, suppress_origin=True)
+        browser_ws = cdp_websocket(browser_info["webSocketDebuggerUrl"], timeout=3, suppress_origin=True)
         browser_ws.send(json.dumps({"id": 1, "method": "Target.createTarget", "params": {"url": url, "background": True}}))
         created = None
         while True:
@@ -296,7 +297,7 @@ class NewCdpGoogleTrendsClient(CdpGoogleTrendsClient):
         target = None
         deadline = time.monotonic() + 10
         while time.monotonic() < deadline:
-            with urlopen(list_url, timeout=10) as response:
+            with cdp_urlopen(list_url, timeout=10) as response:
                 targets = json.load(response)
             target = next((item for item in targets if item.get("id") == created), None)
             if target and target.get("webSocketDebuggerUrl"):
@@ -305,7 +306,7 @@ class NewCdpGoogleTrendsClient(CdpGoogleTrendsClient):
         if not target or not target.get("webSocketDebuggerUrl"):
             browser_ws.close()
             raise RuntimeError("Chrome CDP did not provide a Google Trends page target")
-        ws = websocket.create_connection(target["webSocketDebuggerUrl"], timeout=2, suppress_origin=True)
+        ws = cdp_websocket(target["webSocketDebuggerUrl"], timeout=2, suppress_origin=True)
         next_id = 0
         captured: list[object] = []
         pending_events: list[dict] = []

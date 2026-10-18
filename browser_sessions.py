@@ -5,7 +5,7 @@ from pathlib import Path
 import shlex
 import subprocess
 import time
-from urllib.request import urlopen
+from cdp_transport import cdp_urlopen as urlopen
 
 ROOT = Path(__file__).resolve().parent
 SESSIONS = {

@@ -9,7 +9,7 @@ import sys
 import time
 from collections import deque
 from contextlib import suppress
-from urllib.request import urlopen
+from cdp_transport import cdp_urlopen as urlopen, cdp_websocket
 from urllib.parse import urlencode
 
 import websocket
@@ -64,7 +64,7 @@ class PageUrlGoogleTrendsClient(NewCdpGoogleTrendsClient):
         try:
             with urlopen(self.cdp_url.rstrip('/') + '/json/version', timeout=5) as r:
                 info = json.load(r)
-            browser = websocket.create_connection(info['webSocketDebuggerUrl'], timeout=5, suppress_origin=True)
+            browser = cdp_websocket(info['webSocketDebuggerUrl'], timeout=5, suppress_origin=True)
             browser.send(json.dumps({'id': 1, 'method': 'Target.createTarget', 'params': {
                 'url': 'https://trends.google.com/trends/', 'background': True}}))
             while time.monotonic() < deadline:
@@ -76,7 +76,7 @@ class PageUrlGoogleTrendsClient(NewCdpGoogleTrendsClient):
                 raise RuntimeError('Could not create new Explore background page')
             with urlopen(self.cdp_url.rstrip('/') + '/json/list', timeout=5) as r:
                 target = next(t for t in json.load(r) if t['id'] == target_id)
-            page = websocket.create_connection(target['webSocketDebuggerUrl'], timeout=1, suppress_origin=True)
+            page = cdp_websocket(target['webSocketDebuggerUrl'], timeout=1, suppress_origin=True)
 
             def command(method, params=None):
                 nonlocal seq

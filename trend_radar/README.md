@@ -2,6 +2,8 @@
 
 默认使用当前登录的普通 Chrome（`browser_sessions.py` 中的 Google Trends 专用 profile，端口 9229）。不会复制 Cookie、启动无头浏览器或重建 profile。
 
+本机 CDP 控制连接（`127.0.0.0/8`、`::1`、`localhost`）通过 `cdp_transport.py` 直接连接，避免 macOS 系统 HTTP 代理把 `/json/version` 或浏览器 WebSocket 发往代理服务器。此处理仅作用于本机控制通道；Chrome 访问 Google Trends 仍遵循 Shadowrocket 配置，远程 CDP 与普通公网 HTTP 请求保留原有代理行为。本机 HTTP 重定向到公网会被拒绝。
+
 每次操作依次尝试：
 
 1. 新版 Explore：创建 `background=true` 标签页，先启用网络监听，再导航到携带 `q` 和 `date` 参数的新版 `/explore` 地址。由页面自行加载关键词与时间范围，不模拟点击、填词，也不加随机缓存参数。对本次需要的 RPC 单独等待：Rising 返回不代表 Interest over time 已成功，反之亦然。60 秒仍无有效数据则刷新当前页一次，再等待最多 60 秒；仍无数据才回退旧版。收到明确 429/403 立即停止，不刷新。成功取数后额外停留 10 秒再关闭该页。后端标记为 `new_url`。
